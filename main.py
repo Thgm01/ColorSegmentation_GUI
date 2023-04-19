@@ -3,6 +3,14 @@ from ui.interface import Ui_Form
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+import cv2
+import numpy as np
+
+vermelho_lower = np.array([160,100,100])
+vermelho_upper = np.array([179,255,255])
+
+azul_lower = np.array([85,100,100])
+azul_upper = np.array([130,255,255])
 
 class MainWindow:
     def __init__(self):
@@ -26,7 +34,21 @@ class MainWindow:
         self.ui.verticalSlider_VL.valueChanged.connect(self.value_change)
         self.ui.verticalSlider_VU.valueChanged.connect(self.value_change)
 
-           
+
+        self.Worker1 = Worker1()
+        self.Worker1.start()
+        self.Worker1.ImageUpdate.connect(self.ImageUpdateSlot)
+        self.Worker1.MaskUpdate.connect(self.MaskUpdateSlot)
+        
+
+    def MaskUpdateSlot(self, Mask):
+        self.ui.mask.setPixmap(QPixmap.fromImage(Mask))
+
+
+    def ImageUpdateSlot(self, Image):
+        self.ui.frames.setPixmap(QPixmap.fromImage(Image))
+
+        
     
     def hue_change(self):
 
@@ -77,6 +99,39 @@ class MainWindow:
 
     def show(self):
         self.main_win.show()
+
+class Worker1(QThread):
+    ImageUpdate = pyqtSignal(QImage)
+    MaskUpdate = pyqtSignal(QImage)
+
+    def run(self, mask=False, hsv_lower=vermelho_lower, hsv_upper=vermelho_upper):
+        self.ThreadActive = True
+        cap = cv2.VideoCapture(0)
+        while self.ThreadActive:
+            ret, frame = cap.read()
+            if ret:
+
+                hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+                mask = cv2.inRange(hsv, hsv_lower, hsv_upper)
+                image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                FlippedImage = cv2.flip(image, 1)   
+                FlippedMask = cv2.flip(mask, 1)   
+                 
+                ConvertToQtFormat_image = QImage(FlippedImage.data, FlippedImage.shape[1], FlippedImage.shape[0], QImage.Format_RGB888)
+                ConvertToQtFormat_mask = QImage(FlippedMask.data, FlippedMask.shape[1], FlippedMask.shape[0], QImage.Format_Grayscale8)
+                
+                pic_img = ConvertToQtFormat_image.scaled(400,300, Qt.KeepAspectRatio)
+                pic_mask = ConvertToQtFormat_mask.scaled(400,300, Qt.KeepAspectRatio)
+
+                self.ImageUpdate.emit(pic_img)
+                self.MaskUpdate.emit(pic_mask)
+                
+
+    def stop(self):
+        self.ThreadActive = False
+        self.quit()
+
                 
 
 
