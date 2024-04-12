@@ -6,11 +6,9 @@ from PyQt5.QtGui import *
 import cv2
 import numpy as np
 
-vermelho_lower = np.array([160,100,100])
-vermelho_upper = np.array([179,255,255])
+color_hsv_lower = np.array([0,0,0])
+color_hsv_upper = np.array([255,255,255])
 
-azul_lower = np.array([85,100,100])
-azul_upper = np.array([130,255,255])
 
 class MainWindow:
     def __init__(self):
@@ -64,7 +62,10 @@ class MainWindow:
             self.ui.verticalSlider_HU.setValue(self.hue_upper_value)
 
         self.ui.number_HU.setText(str(self.hue_upper_value))
-        self.ui.number_HL.setText(str(self.hue_lower_value))   
+        self.ui.number_HL.setText(str(self.hue_lower_value))  
+
+        color_hsv_lower[0] = self.hue_lower_value
+        color_hsv_upper[0] = self.hue_upper_value
 
     def saturation_change(self):
         self.saturation_lower_value = self.ui.verticalSlider_SL.value()
@@ -80,6 +81,9 @@ class MainWindow:
 
         self.ui.number_SU.setText(str(self.saturation_upper_value))
         self.ui.number_SL.setText(str(self.saturation_lower_value))
+
+        color_hsv_lower[1] = self.saturation_lower_value
+        color_hsv_upper[1] = self.saturation_upper_value
     
     def value_change(self):
         self.value_lower_value = self.ui.verticalSlider_VL.value()
@@ -96,6 +100,9 @@ class MainWindow:
         self.ui.number_VU.setText(str(self.value_upper_value))
         self.ui.number_VL.setText(str(self.value_lower_value))
 
+        color_hsv_lower[2] = self.value_lower_value
+        color_hsv_upper[2] = self.value_upper_value
+
 
     def show(self):
         self.main_win.show()
@@ -104,7 +111,7 @@ class Worker1(QThread):
     ImageUpdate = pyqtSignal(QImage)
     MaskUpdate = pyqtSignal(QImage)
 
-    def run(self, mask=False, hsv_lower=vermelho_lower, hsv_upper=vermelho_upper):
+    def run(self, mask=False, hsv_lower=color_hsv_lower, hsv_upper=color_hsv_upper):
         self.ThreadActive = True
         cap = cv2.VideoCapture(0)
         while self.ThreadActive:

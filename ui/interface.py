@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class Ui_Form(object):
     def setupUi(self, Form):
-        Form.setObjectName("Form")
+        Form.setObjectName("HSV GUI")
         Form.resize(786, 690)
         self.verticalSlider_HU = QtWidgets.QSlider(Form)
         self.verticalSlider_HU.setGeometry(QtCore.QRect(80, 110, 16, 160))
